@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./app/
+      args:
+        BUILD_MODE: ${BUILD_MODE}
+    volumes:
+      - ../:/var/www/html
+    links:
+      - pgbouncer
+      - redis
+    ports:
+      - ${SERVER_PORT}:8000
+    restart: unless-stopped
+
+  queue:
+    build:
+      context: ./queue/
+      args:
+        BUILD_MODE: ${BUILD_MODE}
+    volumes:
+      - ../:/var/www/html
+    links:
+      - pgbouncer
+      - redis
+
+  schedule:
+    build:
+      context: ./schedule/
+      args:
+        BUILD_MODE: ${BUILD_MODE}
+    volumes:
+      - ../:/var/www/html
+    links:
+      - pgbouncer
+      - redis
+
+  pgbouncer:
+    build:
+      context: ./pgbouncer/
+    environment:
+      DB_USER: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_DATABASE}
+
+  redis:
+    build:
+      context: ./redis/
+    volumes:
+      - redis:/data
+    ports:
+      - "6379:6379"
+
+volumes:
+  redis:
+    driver: local
